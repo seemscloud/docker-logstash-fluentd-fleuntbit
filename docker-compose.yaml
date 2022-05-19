@@ -1,0 +1,44 @@
+version: '3.9'
+
+services:
+  logstash:
+    container_name: logstash
+    hostname: logstash
+    ports:
+      - "9600:9600"
+    environment:
+      LS_JAVA_OPTS: "-Xmx8g -Xms8g"
+    build:
+      context: ./logstash
+    volumes:
+      - ${PWD}/logstash/logstash.sh:/root/entrypoint.sh:ro
+      - ${PWD}/logstash/files/logstash.yml:/root/config/logstash.yml:ro
+      - ${PWD}/logstash/files/pipelines.yml:/root/config/pipelines.yml:ro
+      - ${PWD}/logstash/files/pipelines:/root/pipelines:ro
+  fluentd:
+    container_name: fluentd
+    hostname: fluentd
+    build:
+      context: ./fluentd
+    volumes:
+      - ${PWD}/fluentd/files/fluent.conf:/fluentd/etc/fluent.conf:ro
+  fluentbit:
+    container_name: fluentbit
+    hostname: fluentbit
+    build:
+      context: ./fluentbit
+    volumes:
+      - ${PWD}/fluentbit/files/fleunt-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
+      - logs-data:/data:rw
+  logs:
+    container_name: logs
+    hostname: logs
+    build:
+      context: ./logs
+    volumes:
+      - ${PWD}/logs/entrypoint.sh:/entrypoint.sh:ro
+      - ${PWD}/logs/files/server.log.zip:/tmp/server.log.zip:ro
+      - logs-data:/data:rw
+
+volumes:
+  logs-data:
